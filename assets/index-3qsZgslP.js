@@ -13602,10 +13602,7 @@ const ErrorMessage$2 = newStyled.div`
 `;
 const CARD_NUMBERS_LENGTH = 4;
 const ERROR_MESSAGE$2 = "숫자만 입력 가능합니다.";
-const CardNumbers = ({
-  cardNumbers,
-  setCardNumbers
-}) => {
+const CardNumbers = ({ cardNumbers, setCardNumbers }) => {
   const [errorMessage, setErrorMessage] = reactExports.useState("");
   const [errors, setErrors] = reactExports.useState([false, false, false, false]);
   reactExports.useEffect(() => {
@@ -13826,10 +13823,7 @@ const ErrorMessage = newStyled.div`
 `;
 const CVC_NUMBERS_LENGTH = 3;
 const ERROR_MESSAGE = "숫자만 입력 가능합니다.";
-const CVCNumbers = ({
-  cvcNumbers,
-  setCvcNumbers
-}) => {
+const CVCNumbers = ({ cvcNumbers, setCvcNumbers }) => {
   const [errorMessage, setErrorMessage] = reactExports.useState("");
   const [error, setError] = reactExports.useState(false);
   const handleInputChange = (e) => {
@@ -13973,11 +13967,7 @@ const MASTERCARD_CARD_PREFIXES = {
   MIN: 51,
   MAX: 55
 };
-const Preview = ({
-  cardNumbers,
-  period,
-  separatorRef
-}) => {
+const Preview = ({ cardNumbers, period, separatorRef }) => {
   const [cardMethodSrc, setCardMethodSrc] = reactExports.useState("");
   reactExports.useEffect(() => {
     if (cardNumbers[0].startsWith(VISA_CARD_PREFIXES)) {
