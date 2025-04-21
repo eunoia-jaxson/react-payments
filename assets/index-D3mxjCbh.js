@@ -12563,6 +12563,17 @@ function rulesheet(callback) {
     }
   };
 }
+var weakMemoize = function weakMemoize2(func) {
+  var cache = /* @__PURE__ */ new WeakMap();
+  return function(arg) {
+    if (cache.has(arg)) {
+      return cache.get(arg);
+    }
+    var ret = func(arg);
+    cache.set(arg, ret);
+    return ret;
+  };
+};
 function memoize(fn) {
   var cache = /* @__PURE__ */ Object.create(null);
   return function(arg) {
@@ -13214,6 +13225,27 @@ var withEmotionCache = function withEmotionCache2(func) {
   });
 };
 var ThemeContext = /* @__PURE__ */ reactExports.createContext({});
+var getTheme = function getTheme2(outerTheme, theme2) {
+  if (typeof theme2 === "function") {
+    var mergedTheme = theme2(outerTheme);
+    return mergedTheme;
+  }
+  return _extends({}, outerTheme, theme2);
+};
+var createCacheWithTheme = /* @__PURE__ */ weakMemoize(function(outerTheme) {
+  return weakMemoize(function(theme2) {
+    return getTheme(outerTheme, theme2);
+  });
+});
+var ThemeProvider = function ThemeProvider2(props) {
+  var theme2 = reactExports.useContext(ThemeContext);
+  if (props.theme !== theme2) {
+    theme2 = createCacheWithTheme(theme2)(props.theme);
+  }
+  return /* @__PURE__ */ reactExports.createElement(ThemeContext.Provider, {
+    value: theme2
+  }, props.children);
+};
 var reactPropsRegex = /^((children|dangerouslySetInnerHTML|key|ref|autoFocus|defaultValue|defaultChecked|innerHTML|suppressContentEditableWarning|suppressHydrationWarning|valueLink|abbr|accept|acceptCharset|accessKey|action|allow|allowUserMedia|allowPaymentRequest|allowFullScreen|allowTransparency|alt|async|autoComplete|autoPlay|capture|cellPadding|cellSpacing|challenge|charSet|checked|cite|classID|className|cols|colSpan|content|contentEditable|contextMenu|controls|controlsList|coords|crossOrigin|data|dateTime|decoding|default|defer|dir|disabled|disablePictureInPicture|disableRemotePlayback|download|draggable|encType|enterKeyHint|fetchpriority|fetchPriority|form|formAction|formEncType|formMethod|formNoValidate|formTarget|frameBorder|headers|height|hidden|high|href|hrefLang|htmlFor|httpEquiv|id|inputMode|integrity|is|keyParams|keyType|kind|label|lang|list|loading|loop|low|marginHeight|marginWidth|max|maxLength|media|mediaGroup|method|min|minLength|multiple|muted|name|nonce|noValidate|open|optimum|pattern|placeholder|playsInline|poster|preload|profile|radioGroup|readOnly|referrerPolicy|rel|required|reversed|role|rows|rowSpan|sandbox|scope|scoped|scrolling|seamless|selected|shape|size|sizes|slot|span|spellCheck|src|srcDoc|srcLang|srcSet|start|step|style|summary|tabIndex|target|title|translate|type|useMap|value|width|wmode|wrap|about|datatype|inlist|prefix|property|resource|typeof|vocab|autoCapitalize|autoCorrect|autoSave|color|incremental|fallback|inert|itemProp|itemScope|itemType|itemID|itemRef|on|option|results|security|unselectable|accentHeight|accumulate|additive|alignmentBaseline|allowReorder|alphabetic|amplitude|arabicForm|ascent|attributeName|attributeType|autoReverse|azimuth|baseFrequency|baselineShift|baseProfile|bbox|begin|bias|by|calcMode|capHeight|clip|clipPathUnits|clipPath|clipRule|colorInterpolation|colorInterpolationFilters|colorProfile|colorRendering|contentScriptType|contentStyleType|cursor|cx|cy|d|decelerate|descent|diffuseConstant|direction|display|divisor|dominantBaseline|dur|dx|dy|edgeMode|elevation|enableBackground|end|exponent|externalResourcesRequired|fill|fillOpacity|fillRule|filter|filterRes|filterUnits|floodColor|floodOpacity|focusable|fontFamily|fontSize|fontSizeAdjust|fontStretch|fontStyle|fontVariant|fontWeight|format|from|fr|fx|fy|g1|g2|glyphName|glyphOrientationHorizontal|glyphOrientationVertical|glyphRef|gradientTransform|gradientUnits|hanging|horizAdvX|horizOriginX|ideographic|imageRendering|in|in2|intercept|k|k1|k2|k3|k4|kernelMatrix|kernelUnitLength|kerning|keyPoints|keySplines|keyTimes|lengthAdjust|letterSpacing|lightingColor|limitingConeAngle|local|markerEnd|markerMid|markerStart|markerHeight|markerUnits|markerWidth|mask|maskContentUnits|maskUnits|mathematical|mode|numOctaves|offset|opacity|operator|order|orient|orientation|origin|overflow|overlinePosition|overlineThickness|panose1|paintOrder|pathLength|patternContentUnits|patternTransform|patternUnits|pointerEvents|points|pointsAtX|pointsAtY|pointsAtZ|preserveAlpha|preserveAspectRatio|primitiveUnits|r|radius|refX|refY|renderingIntent|repeatCount|repeatDur|requiredExtensions|requiredFeatures|restart|result|rotate|rx|ry|scale|seed|shapeRendering|slope|spacing|specularConstant|specularExponent|speed|spreadMethod|startOffset|stdDeviation|stemh|stemv|stitchTiles|stopColor|stopOpacity|strikethroughPosition|strikethroughThickness|string|stroke|strokeDasharray|strokeDashoffset|strokeLinecap|strokeLinejoin|strokeMiterlimit|strokeOpacity|strokeWidth|surfaceScale|systemLanguage|tableValues|targetX|targetY|textAnchor|textDecoration|textRendering|textLength|to|transform|u1|u2|underlinePosition|underlineThickness|unicode|unicodeBidi|unicodeRange|unitsPerEm|vAlphabetic|vHanging|vIdeographic|vMathematical|values|vectorEffect|version|vertAdvY|vertOriginX|vertOriginY|viewBox|viewTarget|visibility|widths|wordSpacing|writingMode|x|xHeight|x1|x2|xChannelSelector|xlinkActuate|xlinkArcrole|xlinkHref|xlinkRole|xlinkShow|xlinkTitle|xlinkType|xmlBase|xmlns|xmlnsXlink|xmlLang|xmlSpace|y|y1|y2|yChannelSelector|z|zoomAndPan|for|class|autofocus)|(([Dd][Aa][Tt][Aa]|[Aa][Rr][Ii][Aa]|x)-.*))$/;
 var isPropValid = /* @__PURE__ */ memoize(
   function(prop) {
@@ -13482,7 +13514,7 @@ var newStyled = createStyled.bind(null);
 tags.forEach(function(tagName) {
   newStyled[tagName] = newStyled(tagName);
 });
-const InputLabels = ({ title, caption }) => {
+const InputAreaHeader = ({ title, caption }) => {
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(InputLabelsContainer, { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(Title, { children: title }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Caption, { children: caption || "" })
@@ -13493,51 +13525,67 @@ const InputLabelsContainer = newStyled.div`
   margin-bottom: 16px;
 `;
 const Title = newStyled.h2`
-  font-size: 18px;
-  font-weight: 800;
+  font-size: ${({ theme: theme2 }) => theme2.fontSizes.title};
+  font-weight: ${({ theme: theme2 }) => theme2.fontWeights.extraBold};
   line-height: 100%;
   margin-bottom: 4px;
 `;
 const Caption = newStyled.p`
-  font-weight: 400;
-  font-size: 9.5px;
+  font-weight: ${({ theme: theme2 }) => theme2.fontWeights.normal};
+  font-size: ${({ theme: theme2 }) => theme2.fontSizes.caption};
   line-height: 100%;
   vertical-align: middle;
-  color: #8b95a1;
+  color: ${({ theme: theme2 }) => theme2.colors.caption};
 `;
 const InputTexts = ({
   label,
-  placeholder,
-  state,
-  eventHandler,
-  errors,
+  dataModels,
+  onChange,
   onFocus,
   onBlur
 }) => {
+  const onChangeAt = reactExports.useCallback(
+    (index) => (e) => {
+      onChange(e, index);
+    },
+    []
+  );
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(InputTextsContainer, { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { children: label }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Row, { children: placeholder.map((text, index) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Row, { children: Array.isArray(dataModels) ? dataModels.map((data, index) => /* @__PURE__ */ jsxRuntimeExports.jsx(
       Input,
       {
         type: "text",
-        placeholder: text,
-        maxLength: text.length,
-        value: state ? state[index] : "",
-        onChange: (e) => eventHandler(e, index),
+        placeholder: data.placeholder,
+        maxLength: data.numberSegmentLength,
+        value: data.number,
+        onChange: onChangeAt(index),
         onFocus,
         onBlur,
-        error: errors ? errors[index] : false
+        isError: data.isError
       },
       index
-    )) })
+    )) : /* @__PURE__ */ jsxRuntimeExports.jsx(
+      Input,
+      {
+        type: "text",
+        placeholder: dataModels.placeholder,
+        maxLength: dataModels.numberSegmentLength,
+        value: dataModels.number,
+        onChange: onChangeAt(0),
+        onFocus,
+        onBlur,
+        isError: dataModels.isError
+      }
+    ) })
   ] });
 };
 const InputTextsContainer = newStyled.div`
   width: 100%;
 `;
-const Label = newStyled.div`
-  font-weight: 500;
-  font-size: 12px;
+const Label = newStyled.label`
+  font-weight: ${({ theme: theme2 }) => theme2.fontWeights.normal};
+  font-size: ${({ theme: theme2 }) => theme2.fontSizes.label};
   line-height: 15px;
   margin-bottom: 8px;
 `;
@@ -13552,20 +13600,20 @@ const Row = newStyled.div`
 const Input = newStyled.input`
   width: 100%;
   padding: 8px;
-  border: 1px solid ${(props) => props.error ? "red" : "#ccc"};
+  border: 1px solid
+    ${({ theme: theme2, isError }) => isError ? theme2.colors.error : theme2.colors.border};
   border-radius: 2px;
-  font-size: 11px;
+  font-size: ${({ theme: theme2 }) => theme2.fontSizes.label};
   outline: none;
 `;
-const CardNumbersView = ({
-  cardNumbers,
-  errorMessage,
-  errors,
+const ERROR_MESSAGE$2 = "숫자만 입력 가능합니다.";
+const CardNumberInputsView = ({
+  cardNumbersInfo,
   handleInputChange
 }) => {
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(Container$2, { "data-testid": "cardnumbers-component", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(
-      InputLabels,
+      InputAreaHeader,
       {
         title: "결제할 카드 번호를 입력해 주세요",
         caption: "본인 명의의 카드만 결제 가능합니다."
@@ -13575,13 +13623,11 @@ const CardNumbersView = ({
       InputTexts,
       {
         label: "카드 번호",
-        placeholder: ["1234", "1234", "1234", "1234"],
-        eventHandler: handleInputChange,
-        state: cardNumbers,
-        errors
+        dataModels: cardNumbersInfo,
+        onChange: handleInputChange
       }
     ),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorMessage$2, { children: errorMessage })
+    /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorMessage$2, { children: cardNumbersInfo.some((data) => data.isError) ? ERROR_MESSAGE$2 : "" })
   ] });
 };
 const Container$2 = newStyled.div`
@@ -13592,67 +13638,100 @@ const Container$2 = newStyled.div`
   width: 100%;
 `;
 const ErrorMessage$2 = newStyled.div`
-  font-weight: 400;
-  font-size: 9.5px;
+  font-weight: ${({ theme: theme2 }) => theme2.fontWeights.normal};
+  font-size: ${({ theme: theme2 }) => theme2.fontSizes.caption};
   line-height: 100%;
   letter-spacing: 0%;
   vertical-align: middle;
-  color: red;
-  height: 9.5px;
+  color: ${({ theme: theme2 }) => theme2.colors.error};
+  height: ${({ theme: theme2 }) => theme2.fontSizes.caption};
 `;
+function isNumeric(value) {
+  return /^[0-9]*$/.test(value);
+}
+function isValidSegment(value, maxLength) {
+  return value.length <= maxLength;
+}
+const ERROR_MESSAGE$1 = {
+  INVALID_YEAR: "올바른 유효기간을 입력하세요. (YY: 00~99)",
+  INVALID_MONTH: "올바른 유효기간을 입력하세요. (MM: 01~12)",
+  INVALID_LENGTH: "올바른 유효기간을 입력하세요. (MM/YY)",
+  INVALID_CHARACTER: "숫자만 입력 가능합니다."
+};
+const MONTH = { MIN: 1, MAX: 12 };
+const YEAR = { MIN: 0, MAX: 99 };
+function isInRange(value, index) {
+  const num = Number(value);
+  if (index === 0 && (num < MONTH.MIN || num > MONTH.MAX)) return 1;
+  if (index === 1 && (num < YEAR.MIN || num > YEAR.MAX)) return 2;
+  return 0;
+}
+function isValidExpirationSegment(value, index, maxLength) {
+  if (!isNumeric(value)) {
+    return { valid: false, errorMessage: ERROR_MESSAGE$1.INVALID_CHARACTER };
+  }
+  if (!isValidSegment(value, maxLength)) {
+    return { valid: false, errorMessage: ERROR_MESSAGE$1.INVALID_LENGTH };
+  }
+  if (value.length < maxLength) {
+    return { valid: true, errorMessage: "" };
+  }
+  if (isInRange(value, index) === 1) {
+    return { valid: false, errorMessage: ERROR_MESSAGE$1.INVALID_MONTH };
+  }
+  if (isInRange(value, index) === 2) {
+    return { valid: false, errorMessage: ERROR_MESSAGE$1.INVALID_YEAR };
+  }
+  return { valid: true, errorMessage: "" };
+}
 const CARD_NUMBERS_LENGTH = 4;
-const ERROR_MESSAGE$2 = "숫자만 입력 가능합니다.";
-const CardNumbers = ({ cardNumbers, setCardNumbers }) => {
-  const [errorMessage, setErrorMessage] = reactExports.useState("");
-  const [errors, setErrors] = reactExports.useState([false, false, false, false]);
-  reactExports.useEffect(() => {
-    if (errors.every((error) => error === false)) {
-      setErrorMessage("");
-    }
-  }, [errors]);
+const CardNumberInputs = ({
+  cardNumbers,
+  handleCardNumbersChange
+}) => {
+  const [cardNumbersInfo, setCardNumbersInfo] = reactExports.useState(
+    () => cardNumbers.map((number) => ({
+      number,
+      isError: false,
+      placeholder: "1234",
+      numberSegmentLength: CARD_NUMBERS_LENGTH
+    }))
+  );
   const handleInputChange = (e, index) => {
-    const value = e.target.value;
-    setCardNumbers((prev2) => {
-      const newState = [...prev2];
-      if (/^[0-9]*$/.test(value) && value.length <= CARD_NUMBERS_LENGTH) {
-        newState[index] = value;
-        setErrors((prevErrors) => {
-          const newErrors = [...prevErrors];
-          newErrors[index] = false;
-          return newErrors;
-        });
-      } else {
-        setErrorMessage(ERROR_MESSAGE$2);
-        setErrors((prevErrors) => {
-          const newErrors = [...prevErrors];
-          newErrors[index] = true;
-          return newErrors;
-        });
-      }
-      return newState;
-    });
+    const { value } = e.target;
+    const valid = isNumeric(value) && isValidSegment(value, CARD_NUMBERS_LENGTH);
+    setCardNumbersInfo(
+      (prev2) => prev2.map(
+        (info, i) => i === index ? {
+          ...info,
+          number: valid ? value : info.number,
+          isError: !valid
+        } : info
+      )
+    );
   };
+  reactExports.useEffect(() => {
+    handleCardNumbersChange(cardNumbersInfo.map((info) => info.number));
+  }, [cardNumbersInfo]);
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    CardNumbersView,
+    CardNumberInputsView,
     {
-      cardNumbers,
-      errorMessage,
-      errors,
+      cardNumbersInfo,
       handleInputChange
     }
   );
 };
-const ExpirationPeriodView = ({
-  period,
-  errorMessage,
-  errors,
+const ExpirationPeriodInputsView = ({
+  expiryDateInfo,
   handleInputChange,
   onFocus,
   onBlur
 }) => {
+  var _a;
+  const errorMessage = ((_a = expiryDateInfo.find((info) => info.isError)) == null ? void 0 : _a.errorMessage) ?? "";
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(Container$1, { "data-testid": "expiration-component", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(
-      InputLabels,
+      InputAreaHeader,
       {
         title: "카드 유효기간을 입력해 주세요",
         caption: "월/년도(MMYY)를 순서대로 입력해 주세요."
@@ -13662,10 +13741,8 @@ const ExpirationPeriodView = ({
       InputTexts,
       {
         label: "유효기간",
-        placeholder: ["MM", "YY"],
-        state: period,
-        eventHandler: handleInputChange,
-        errors,
+        dataModels: expiryDateInfo,
+        onChange: handleInputChange,
         onFocus,
         onBlur
       }
@@ -13681,129 +13758,77 @@ const Container$1 = newStyled.div`
   width: 100%;
 `;
 const ErrorMessage$1 = newStyled.div`
-  font-weight: 400;
-  font-size: 9.5px;
+  font-weight: ${({ theme: theme2 }) => theme2.fontWeights.normal};
+  font-size: ${({ theme: theme2 }) => theme2.fontSizes.caption};
   line-height: 100%;
   letter-spacing: 0%;
   vertical-align: middle;
-  color: red;
-  height: 9.5px;
+  color: ${({ theme: theme2 }) => theme2.colors.error};
+  height: ${({ theme: theme2 }) => theme2.fontSizes.caption};
 `;
 const EXPIRATION_PERIOD_LENGTH = 2;
-const SEPARATOR = "/";
-const MONTH = {
-  MIN: 1,
-  MAX: 12
-};
-const YEAR = {
-  MIN: 0,
-  MAX: 99
-};
-const ERROR_MESSAGE$1 = {
-  INVALID: "올바른 유효기간을 입력하세요.",
-  INVALID_CHARACTER: "숫자만 입력 가능합니다."
-};
-const ExpirationPeriod = ({
+const ExpirationPeriodInputs = ({
   period,
-  setPeriod,
-  separatorRef
+  handlePeriodChange,
+  showPeriodSeparator,
+  hidePeriodSeparator
 }) => {
-  const [errorMessage, setErrorMessage] = reactExports.useState("");
-  const [errors, setErrors] = reactExports.useState([false, false]);
-  reactExports.useEffect(() => {
-    if (errors.every((error) => error === false)) {
-      setErrorMessage("");
-    }
-  }, [errors]);
+  const [expiryDateInfo, setExpiryDateInfo] = reactExports.useState(
+    period.map((num, idx) => ({
+      number: num,
+      isError: false,
+      placeholder: idx === 0 ? "MM" : "YY",
+      numberSegmentLength: EXPIRATION_PERIOD_LENGTH,
+      errorMessage: ""
+    }))
+  );
   const handleInputChange = (e, index) => {
     const value = e.target.value;
-    setPeriod((prev2) => {
-      const newState = [...prev2];
-      let valid = true;
-      let message = "";
-      if (!/^[0-9]*$/.test(value)) {
-        valid = false;
-        message = ERROR_MESSAGE$1.INVALID_CHARACTER;
-      } else if (value.length <= EXPIRATION_PERIOD_LENGTH) {
-        newState[index] = value;
-        if (index === 0) {
-          const month = Number(value);
-          if (month > MONTH.MAX || month < MONTH.MIN) {
-            valid = false;
-            message = ERROR_MESSAGE$1.INVALID;
-          } else if (month < 10 && !value.startsWith("0")) {
-            valid = false;
-            message = ERROR_MESSAGE$1.INVALID;
-          }
-        } else {
-          const year = Number(value);
-          if (year < YEAR.MIN || year > YEAR.MAX) {
-            valid = false;
-            message = ERROR_MESSAGE$1.INVALID;
-          } else if (year < 10 && !value.startsWith("0") || value.length === 1) {
-            valid = false;
-            message = ERROR_MESSAGE$1.INVALID;
-          }
-        }
-      }
-      if (!valid) {
-        setErrorMessage(message);
-        setErrors((prevErr) => {
-          const newErrors = [...prevErr];
-          newErrors[index] = true;
-          return newErrors;
-        });
-      } else {
-        setErrors((prevErr) => {
-          const newErrors = [...prevErr];
-          newErrors[index] = false;
-          return newErrors;
-        });
-      }
-      return newState;
-    });
+    const { valid, errorMessage } = isValidExpirationSegment(
+      value,
+      index,
+      EXPIRATION_PERIOD_LENGTH
+    );
+    setExpiryDateInfo(
+      (prev2) => prev2.map(
+        (info, i) => i === index ? {
+          ...info,
+          number: valid ? value : info.number,
+          isError: !valid,
+          errorMessage
+        } : info
+      )
+    );
   };
-  const handleFocus = () => {
-    if (separatorRef == null ? void 0 : separatorRef.current) {
-      separatorRef.current.textContent = SEPARATOR;
-    }
-  };
-  const handleBlur = () => {
-    if ((separatorRef == null ? void 0 : separatorRef.current) && period[0] === "" && period[1] === "") {
-      separatorRef.current.textContent = "";
-    }
-  };
+  reactExports.useEffect(() => {
+    handlePeriodChange(expiryDateInfo.map((info) => info.number));
+  }, [expiryDateInfo]);
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    ExpirationPeriodView,
+    ExpirationPeriodInputsView,
     {
-      period,
-      errorMessage,
-      errors,
+      expiryDateInfo,
       handleInputChange,
-      onFocus: handleFocus,
-      onBlur: handleBlur
+      onFocus: showPeriodSeparator,
+      onBlur: hidePeriodSeparator
     }
   );
 };
-const CVCNumbersView = ({
-  cvcNumbers,
-  errorMessage,
-  error,
+const ERROR_MESSAGE = "숫자만 입력 가능합니다.";
+const CVCNumberInputView = ({
+  cvcNumberInfo,
   handleInputChange
 }) => {
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(Container, { "data-testid": "cvcnumbers-component", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(InputLabels, { title: "CVC 번호를 입력해 주세요" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(InputAreaHeader, { title: "CVC 번호를 입력해 주세요" }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(
       InputTexts,
       {
+        dataModels: cvcNumberInfo,
         label: "CVC",
-        placeholder: ["123"],
-        state: cvcNumbers,
-        eventHandler: handleInputChange,
-        errors: [error]
+        onChange: handleInputChange
       }
     ),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorMessage, { children: errorMessage })
+    /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorMessage, { children: cvcNumberInfo.isError ? ERROR_MESSAGE : "" })
   ] });
 };
 const Container = newStyled.div`
@@ -13814,65 +13839,61 @@ const Container = newStyled.div`
   width: 100%;
 `;
 const ErrorMessage = newStyled.div`
-  font-weight: 400;
-  font-size: 9.5px;
+  font-weight: ${({ theme: theme2 }) => theme2.fontWeights.normal};
+  font-size: ${({ theme: theme2 }) => theme2.fontSizes.caption};
   line-height: 100%;
+  letter-spacing: 0%;
   vertical-align: middle;
-  color: red;
-  height: 9.5px;
+  color: ${({ theme: theme2 }) => theme2.colors.error};
+  height: ${({ theme: theme2 }) => theme2.fontSizes.caption};
 `;
 const CVC_NUMBERS_LENGTH = 3;
-const ERROR_MESSAGE = "숫자만 입력 가능합니다.";
-const CVCNumbers = ({ cvcNumbers, setCvcNumbers }) => {
-  const [errorMessage, setErrorMessage] = reactExports.useState("");
-  const [error, setError] = reactExports.useState(false);
+const CVCNumberInput = () => {
+  const [cvcNumberInfo, setCvcNumberInfo] = reactExports.useState(() => ({
+    number: "",
+    isError: false,
+    placeholder: "123",
+    numberSegmentLength: CVC_NUMBERS_LENGTH
+  }));
   const handleInputChange = (e) => {
-    setCvcNumbers((prev2) => {
-      const newState = [...prev2];
-      const value = e.target.value;
-      if (/^[0-9]*$/.test(value) && value.length <= CVC_NUMBERS_LENGTH) {
-        newState[0] = value;
-        setErrorMessage("");
-        setError(false);
-      } else {
-        setErrorMessage(ERROR_MESSAGE);
-        setError(true);
-      }
-      return newState;
-    });
+    const { value } = e.target;
+    const valid = isNumeric(value) && isValidSegment(value, CVC_NUMBERS_LENGTH);
+    setCvcNumberInfo((prev2) => ({
+      ...prev2,
+      number: valid ? value : prev2.number,
+      isError: !valid
+    }));
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    CVCNumbersView,
+    CVCNumberInputView,
     {
-      cvcNumbers,
-      errorMessage,
-      error,
+      cvcNumberInfo,
       handleInputChange
     }
   );
 };
 const CARD_NUMBER_VISIBLE_THRESHOLD = 2;
+const SEPARATOR = "/";
 const PreviewView = ({
   cardNumbers,
   period,
-  separatorRef,
+  isPeriodSeparatorShowing,
   cardMethodSrc
 }) => {
   return /* @__PURE__ */ jsxRuntimeExports.jsx(PreviewContainer, { "data-testid": "preview-component", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(CardFrame, { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(ICChip, {}),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
+    cardMethodSrc && /* @__PURE__ */ jsxRuntimeExports.jsx(
       CardMethod,
       {
         src: cardMethodSrc,
-        style: { display: cardMethodSrc ? "block" : "none" },
         "data-testid": "card-method",
         alt: "Card Method"
       }
     ),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(CardNumberArea, { children: cardNumbers.map((number, index) => /* @__PURE__ */ jsxRuntimeExports.jsx(CardNumber, { children: index < CARD_NUMBER_VISIBLE_THRESHOLD ? number : "∙".repeat(number.length) }, index)) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(CardNumberArea, { children: cardNumbers.map((number, index) => /* @__PURE__ */ jsxRuntimeExports.jsx(CardNumber, { children: index < CARD_NUMBER_VISIBLE_THRESHOLD ? number : "•".repeat(number.length) }, index)) }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs(CardPeriodArea, { children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(CardPeriod, { children: period[0] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Separator, { ref: separatorRef }),
+      isPeriodSeparatorShowing && /* @__PURE__ */ jsxRuntimeExports.jsx(Separator, { children: SEPARATOR }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(CardPeriod, { children: period[1] })
     ] })
   ] }) });
@@ -13893,14 +13914,14 @@ const CardFrame = newStyled.div`
   width: 212px;
   height: 132px;
   border-radius: 4px;
-  background-color: #333333;
+  background-color: ${({ theme: theme2 }) => theme2.colors.cardBackground};
   box-shadow: 3px 3px 5px 0px #00000040;
   position: relative;
 `;
 const ICChip = newStyled.div`
   width: 36px;
   height: 22px;
-  background-color: #ddcd78;
+  background-color: ${({ theme: theme2 }) => theme2.colors.ICChip};
   border-radius: 3px;
   position: absolute;
   top: 8px;
@@ -13918,13 +13939,13 @@ const CardNumberArea = newStyled.div`
 `;
 const CardNumber = newStyled.span`
   width: 38px;
-  font-family: 'Inter';
-  font-weight: 500;
-  font-size: 14px;
+  font-family: ${({ theme: theme2 }) => theme2.fonts.inter};
+  font-weight: ${({ theme: theme2 }) => theme2.fontWeights.normal};
+  font-size: ${({ theme: theme2 }) => theme2.fontSizes.cardInfo};
   line-height: 20px;
   letter-spacing: 2px;
   vertical-align: middle;
-  color: #ffffff;
+  color: ${({ theme: theme2 }) => theme2.colors.cardText};
 `;
 const CardPeriodArea = newStyled.div`
   display: flex;
@@ -13938,22 +13959,23 @@ const CardPeriodArea = newStyled.div`
 `;
 const CardPeriod = newStyled.span`
   width: 16px;
-  font-family: 'Inter';
-  font-weight: 500;
-  font-size: 14px;
+  font-family: ${({ theme: theme2 }) => theme2.fonts.inter};
+  font-weight: ${({ theme: theme2 }) => theme2.fontWeights.normal};
+  font-size: ${({ theme: theme2 }) => theme2.fontSizes.cardInfo};
   line-height: 20px;
   letter-spacing: 2px;
   vertical-align: middle;
-  color: #ffffff;
+  color: ${({ theme: theme2 }) => theme2.colors.cardText};
 `;
 const Separator = newStyled.span`
-  font-family: 'Inter';
-  font-weight: 500;
-  font-size: 14px;
+  width: 10px;
+  font-family: ${({ theme: theme2 }) => theme2.fonts.inter};
+  font-weight: ${({ theme: theme2 }) => theme2.fontWeights.normal};
+  font-size: ${({ theme: theme2 }) => theme2.fontSizes.cardInfo};
   line-height: 20px;
-  letter-spacing: 2px;
   vertical-align: middle;
-  color: #ffffff;
+  text-align: center;
+  color: ${({ theme: theme2 }) => theme2.colors.cardText};
 `;
 const CardMethod = newStyled.img`
   width: 36px;
@@ -13967,54 +13989,100 @@ const MASTERCARD_CARD_PREFIXES = {
   MIN: 51,
   MAX: 55
 };
-const Preview = ({ cardNumbers, period, separatorRef }) => {
-  const [cardMethodSrc, setCardMethodSrc] = reactExports.useState("");
-  reactExports.useEffect(() => {
+const Preview = ({
+  cardNumbers,
+  period,
+  isPeriodSeparatorShowing
+}) => {
+  const getCardMethodSrc = () => {
     if (cardNumbers[0].startsWith(VISA_CARD_PREFIXES)) {
-      setCardMethodSrc("./images/visa.svg");
-    } else if (Number(cardNumbers[0].slice(0, 2)) >= MASTERCARD_CARD_PREFIXES.MIN && Number(cardNumbers[0].slice(0, 2)) <= MASTERCARD_CARD_PREFIXES.MAX) {
-      setCardMethodSrc("./images/Mastercard.svg");
-    } else {
-      setCardMethodSrc("");
+      return "./images/visa.svg";
     }
-  }, [cardNumbers]);
+    if (Number(cardNumbers[0].slice(0, 2)) >= MASTERCARD_CARD_PREFIXES.MIN && Number(cardNumbers[0].slice(0, 2)) <= MASTERCARD_CARD_PREFIXES.MAX) {
+      return "./images/master.svg";
+    }
+    return null;
+  };
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     PreviewView,
     {
       cardNumbers,
       period,
-      separatorRef,
-      cardMethodSrc
+      isPeriodSeparatorShowing,
+      cardMethodSrc: getCardMethodSrc()
     }
   );
+};
+const theme = {
+  colors: {
+    caption: "#8b95a1",
+    ICChip: "#ddcd78",
+    background: "#f9f9f9",
+    cardBackground: "#333333",
+    cardText: "#ffffff",
+    border: "#ccc",
+    error: "#ff0000"
+  },
+  fonts: {
+    inter: "Inter, sans-serif"
+  },
+  fontSizes: {
+    caption: "9.5px",
+    label: "12px",
+    cardInfo: "14px",
+    title: "18px"
+  },
+  fontWeights: {
+    normal: 400,
+    bold: 700,
+    extraBold: 800
+  }
 };
 const App = () => {
   const [cardNumbers, setCardNumbers] = reactExports.useState(["", "", "", ""]);
   const [period, setPeriod] = reactExports.useState(["", ""]);
-  const [cvcNumbers, setCvcNumbers] = reactExports.useState([""]);
-  const separatorRef = reactExports.useRef(null);
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(Main, { children: [
+  const [isPeriodSeparatorShowing, setIsPeriodSeparatorShowing] = reactExports.useState(false);
+  const showPeriodSeparator = reactExports.useCallback(() => {
+    setIsPeriodSeparatorShowing(true);
+  }, []);
+  const hidePeriodSeparator = reactExports.useCallback(() => {
+    setIsPeriodSeparatorShowing(period.some((p) => p !== ""));
+  }, []);
+  const handleCardNumbersChange = reactExports.useCallback((newCardNumbers) => {
+    setCardNumbers(newCardNumbers);
+  }, []);
+  const handlePeriodChange = reactExports.useCallback((newPeriod) => {
+    setPeriod(newPeriod);
+  }, []);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(ThemeProvider, { theme, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Main, { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(
       Preview,
       {
         cardNumbers,
         period,
-        separatorRef
+        isPeriodSeparatorShowing
       }
     ),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(CardNumbers, { cardNumbers, setCardNumbers }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(
-      ExpirationPeriod,
+      CardNumberInputs,
+      {
+        cardNumbers,
+        handleCardNumbersChange
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      ExpirationPeriodInputs,
       {
         period,
-        setPeriod,
-        separatorRef
+        handlePeriodChange,
+        showPeriodSeparator,
+        hidePeriodSeparator
       }
     ),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(CVCNumbers, { cvcNumbers, setCvcNumbers })
-  ] });
+    /* @__PURE__ */ jsxRuntimeExports.jsx(CVCNumberInput, {})
+  ] }) });
 };
-const Main = newStyled.div`
+const Main = newStyled.main`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -14022,7 +14090,7 @@ const Main = newStyled.div`
   margin: 0 auto;
   width: 376px;
   height: 100dvh;
-  background-color: #f9f9f9;
+  background-color: ${({ theme: theme2 }) => theme2.colors.background};
   gap: 24px;
 `;
 ReactDOM.createRoot(document.getElementById("root")).render(
