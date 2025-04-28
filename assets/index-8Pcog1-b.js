@@ -16620,7 +16620,7 @@ const ConfirmButton = newStyled(Button)`
   height: 44px;
 `;
 const App = () => {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(ThemeProvider, { theme, children: /* @__PURE__ */ jsxRuntimeExports.jsx(NumbersProvider, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(BrandProvider, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(ExpiryDateProvider, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(CvcProvider, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(PasswordProvider, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(Main, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(BrowserRouter, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Routes, { children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(ThemeProvider, { theme, children: /* @__PURE__ */ jsxRuntimeExports.jsx(NumbersProvider, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(BrandProvider, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(ExpiryDateProvider, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(CvcProvider, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(PasswordProvider, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(Main, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(BrowserRouter, { basename: void 0, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Routes, { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/", element: /* @__PURE__ */ jsxRuntimeExports.jsx(HomePage, {}) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/complete", element: /* @__PURE__ */ jsxRuntimeExports.jsx(CompletePage, {}) })
   ] }) }) }) }) }) }) }) }) });
