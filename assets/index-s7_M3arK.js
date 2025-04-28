@@ -15772,9 +15772,8 @@ const BrandProvider = ({
 function useBrandContext() {
   const ctx = reactExports.useContext(BrandContext);
   if (!ctx) {
-    throw new Error(
-      "useBrandContext는 BrandContextProvider 내에서 사용되어야 합니다."
-    );
+    alert("useBrandContext는 BrandContextProvider 내에서 사용되어야 합니다.");
+    return {};
   }
   return ctx;
 }
@@ -15925,20 +15924,37 @@ const ExpiryDateProvider = ({
     maximumLength: EXPIRY_SEGMENT_LENGTH,
     validationFunction: isValidExpirationSegment
   });
+  const [showSep, setShowSep] = reactExports.useState(false);
+  const showPeriodSeparator = reactExports.useCallback(() => {
+    setShowSep(true);
+  }, []);
+  const hidePeriodSeparator = reactExports.useCallback(
+    () => setShowSep(expiryFields.some((f) => f.value !== "")),
+    [expiryFields]
+  );
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     ExpiryDateContext.Provider,
     {
-      value: { expiryFields, handleExpiryChange, expiryInputRefs },
+      value: {
+        expiryFields,
+        handleExpiryChange,
+        expiryInputRefs,
+        showSep,
+        showPeriodSeparator,
+        hidePeriodSeparator
+      },
       children
     }
   );
 };
 function useExpiryDateContext() {
   const ctx = reactExports.useContext(ExpiryDateContext);
-  if (!ctx)
-    throw new Error(
+  if (!ctx) {
+    alert(
       "useExpiryDateContext는 ExpiryDateContextProvider 내에서 사용되어야 합니다."
     );
+    return {};
+  }
   return ctx;
 }
 const NumbersContext = reactExports.createContext(null);
@@ -15963,157 +15979,13 @@ const NumbersProvider = ({
 };
 function useNumbersContext() {
   const ctx = reactExports.useContext(NumbersContext);
-  if (!ctx)
-    throw new Error(
+  if (!ctx) {
+    alert(
       "useNumbersContext는 NumbersContextProvider 내에서 사용되어야 합니다."
     );
+    return {};
+  }
   return ctx;
-}
-function useSequentialReveal(completions, initialIndex = 0) {
-  const maxIndexRef = reactExports.useRef(initialIndex);
-  completions.forEach((isComplete, idx) => {
-    if (isComplete && idx > maxIndexRef.current) {
-      maxIndexRef.current = idx;
-    }
-  });
-  return completions.map((_, idx) => idx <= maxIndexRef.current);
-}
-function useFormValidation({
-  numberFields,
-  expiryFields,
-  cvcField,
-  passwordField,
-  selectedBrand
-}) {
-  return reactExports.useMemo(() => {
-    if (!selectedBrand) return false;
-    const allFields = [
-      ...numberFields,
-      ...expiryFields,
-      cvcField,
-      passwordField
-    ];
-    return allFields.every(
-      (field) => !field.hasError && field.value.length === field.maximumLength
-    );
-  }, [numberFields, expiryFields, cvcField, passwordField, selectedBrand]);
-}
-const CvcContext = reactExports.createContext(null);
-const CVC_PLACEHOLDER = "123";
-const CVC_MAX_LENGTH = 3;
-const CvcProvider = ({
-  children
-}) => {
-  const [cvcField, handleCvcChange, cvcInputRef] = useInputField({
-    initialValue: "",
-    placeholder: CVC_PLACEHOLDER,
-    maximumLength: CVC_MAX_LENGTH,
-    validationFunction: validateCvcNumber
-  });
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(CvcContext.Provider, { value: { cvcField, handleCvcChange, cvcInputRef }, children });
-};
-function useCvcContext() {
-  const ctx = reactExports.useContext(CvcContext);
-  if (!ctx)
-    throw new Error(
-      "useCvcContext는 CvcContextProvider 내에서 사용되어야 합니다."
-    );
-  return ctx;
-}
-const PasswordContext = reactExports.createContext(null);
-const PASSWORD_PLACEHOLDER = "**";
-const PASSWORD_MAX_LENGTH = 2;
-const PasswordProvider = ({
-  children
-}) => {
-  const [passwordField, handlePasswordChange, passwordInputRef] = useInputField(
-    {
-      initialValue: "",
-      placeholder: PASSWORD_PLACEHOLDER,
-      maximumLength: PASSWORD_MAX_LENGTH,
-      validationFunction: validatePasswordSegment
-    }
-  );
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    PasswordContext.Provider,
-    {
-      value: { passwordField, handlePasswordChange, passwordInputRef },
-      children
-    }
-  );
-};
-function usePasswordContext() {
-  const ctx = reactExports.useContext(PasswordContext);
-  if (!ctx)
-    throw new Error(
-      "usePasswordContext는 PasswordContextProvider 내에서 사용되어야 합니다."
-    );
-  return ctx;
-}
-function useFormUiLogic() {
-  const { numberFields, numberInputRefs } = useNumbersContext();
-  const { expiryFields, expiryInputRefs } = useExpiryDateContext();
-  const { cvcField, cvcInputRef } = useCvcContext();
-  const { passwordField, passwordInputRef } = usePasswordContext();
-  const { brand, brandSelectRef } = useBrandContext();
-  const [showSep, setShowSep] = reactExports.useState(false);
-  const showPeriodSeparator = reactExports.useCallback(() => setShowSep(true), []);
-  const hidePeriodSeparator = reactExports.useCallback(
-    () => setShowSep(expiryFields.some((f) => f.value !== "")),
-    [expiryFields]
-  );
-  const isFormValid = useFormValidation({
-    numberFields,
-    expiryFields,
-    cvcField,
-    passwordField,
-    selectedBrand: brand
-  });
-  const triggers = [
-    true,
-    numberFields.every(
-      (f) => !f.hasError && f.value.length === f.maximumLength
-    ),
-    brand !== "",
-    expiryFields.every(
-      (f) => !f.hasError && f.value.length === f.maximumLength
-    ),
-    !cvcField.hasError && cvcField.value.length === cvcField.maximumLength
-  ];
-  const revealFlags = useSequentialReveal(triggers, 0);
-  const prevRef = reactExports.useRef(revealFlags);
-  reactExports.useLayoutEffect(() => {
-    var _a, _b, _c, _d, _e;
-    const prev2 = prevRef.current;
-    const newIdx = revealFlags.findIndex((on, i) => on && !prev2[i]);
-    if (newIdx >= 0) {
-      switch (newIdx) {
-        case 0:
-          (_a = numberInputRefs[0].current) == null ? void 0 : _a.focus();
-          break;
-        case 1:
-          (_b = brandSelectRef.current) == null ? void 0 : _b.focus();
-          break;
-        case 2:
-          (_c = expiryInputRefs[0].current) == null ? void 0 : _c.focus();
-          break;
-        case 3:
-          (_d = cvcInputRef.current) == null ? void 0 : _d.focus();
-          break;
-        case 4:
-          (_e = passwordInputRef.current) == null ? void 0 : _e.focus();
-          break;
-      }
-    }
-    prevRef.current = revealFlags;
-  }, [revealFlags, expiryFields, numberFields]);
-  return {
-    showSep,
-    showPeriodSeparator,
-    hidePeriodSeparator,
-    isFormValid,
-    revealFlags
-  };
 }
 const NUMBER_VISIBLE_THRESHOLD = 2;
 const SEPARATOR = "/";
@@ -16232,9 +16104,8 @@ const CardBrand = newStyled.img`
 const VISA_CARD_PREFIX = "4";
 const MASTERCARD_PREFIX_RANGE = { MIN: 51, MAX: 55 };
 const Preview = () => {
-  const { showSep } = useFormUiLogic();
   const { numberFields } = useNumbersContext();
-  const { expiryFields } = useExpiryDateContext();
+  const { expiryFields, showSep } = useExpiryDateContext();
   const { brand } = useBrandContext();
   const numbers = numberFields.map((field) => field.value);
   const period = expiryFields.map((field) => field.value);
@@ -16328,8 +16199,6 @@ const InputTexts = ({
         maxLength: dataModels.maximumLength,
         value: dataModels.value,
         onChange: onChangeAt(0),
-        onFocus,
-        onBlur,
         isError: dataModels.hasError,
         autoComplete: "off"
       }
@@ -16469,8 +16338,13 @@ const BrandSelect = () => {
 };
 const ExpiryDateInputs = () => {
   var _a;
-  const { expiryFields, handleExpiryChange, expiryInputRefs } = useExpiryDateContext();
-  const { showPeriodSeparator, hidePeriodSeparator } = useFormUiLogic();
+  const {
+    expiryFields,
+    handleExpiryChange,
+    expiryInputRefs,
+    showPeriodSeparator,
+    hidePeriodSeparator
+  } = useExpiryDateContext();
   const errorMessage = ((_a = expiryFields.find((info) => info.hasError)) == null ? void 0 : _a.errorMessage) ?? "";
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(Container, { "data-testid": "expiration-component", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -16494,6 +16368,28 @@ const ExpiryDateInputs = () => {
     /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorMessage, { children: errorMessage })
   ] });
 };
+const CvcContext = reactExports.createContext(null);
+const CVC_PLACEHOLDER = "123";
+const CVC_MAX_LENGTH = 3;
+const CvcProvider = ({
+  children
+}) => {
+  const [cvcField, handleCvcChange, cvcInputRef] = useInputField({
+    initialValue: "",
+    placeholder: CVC_PLACEHOLDER,
+    maximumLength: CVC_MAX_LENGTH,
+    validationFunction: validateCvcNumber
+  });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(CvcContext.Provider, { value: { cvcField, handleCvcChange, cvcInputRef }, children });
+};
+function useCvcContext() {
+  const ctx = reactExports.useContext(CvcContext);
+  if (!ctx) {
+    alert("useCvcContext는 CvcContextProvider 내에서 사용되어야 합니다.");
+    return {};
+  }
+  return ctx;
+}
 const CVCNumberInput = () => {
   const { cvcField, handleCvcChange, cvcInputRef } = useCvcContext();
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(Container, { "data-testid": "cvcnumbers-component", children: [
@@ -16510,6 +16406,38 @@ const CVCNumberInput = () => {
     /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorMessage, { children: cvcField.hasError ? ERROR_MESSAGE.INVALID_CHARACTER : "" })
   ] });
 };
+const PasswordContext = reactExports.createContext(null);
+const PASSWORD_PLACEHOLDER = "**";
+const PASSWORD_MAX_LENGTH = 2;
+const PasswordProvider = ({
+  children
+}) => {
+  const [passwordField, handlePasswordChange, passwordInputRef] = useInputField(
+    {
+      initialValue: "",
+      placeholder: PASSWORD_PLACEHOLDER,
+      maximumLength: PASSWORD_MAX_LENGTH,
+      validationFunction: validatePasswordSegment
+    }
+  );
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    PasswordContext.Provider,
+    {
+      value: { passwordField, handlePasswordChange, passwordInputRef },
+      children
+    }
+  );
+};
+function usePasswordContext() {
+  const ctx = reactExports.useContext(PasswordContext);
+  if (!ctx) {
+    alert(
+      "usePasswordContext는 PasswordContextProvider 내에서 사용되어야 합니다."
+    );
+    return {};
+  }
+  return ctx;
+}
 const PasswordInput = () => {
   const { passwordField, handlePasswordChange, passwordInputRef } = usePasswordContext();
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(Container, { "data-testid": "password-component", children: [
@@ -16533,6 +16461,91 @@ const PasswordInput = () => {
     /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorMessage, { children: passwordField.hasError ? ERROR_MESSAGE.INVALID_CHARACTER : "" })
   ] });
 };
+function useSequentialReveal(completions, initialIndex = 0) {
+  const maxIndexRef = reactExports.useRef(initialIndex);
+  completions.forEach((isComplete, idx) => {
+    if (isComplete && idx > maxIndexRef.current) {
+      maxIndexRef.current = idx;
+    }
+  });
+  return completions.map((_, idx) => idx <= maxIndexRef.current);
+}
+function useFormValidation({
+  numberFields,
+  expiryFields,
+  cvcField,
+  passwordField,
+  selectedBrand
+}) {
+  return reactExports.useMemo(() => {
+    if (!selectedBrand) return false;
+    const allFields = [
+      ...numberFields,
+      ...expiryFields,
+      cvcField,
+      passwordField
+    ];
+    return allFields.every(
+      (field) => !field.hasError && field.value.length === field.maximumLength
+    );
+  }, [numberFields, expiryFields, cvcField, passwordField, selectedBrand]);
+}
+function useFormUiLogic() {
+  const { numberFields, numberInputRefs } = useNumbersContext();
+  const { expiryFields, expiryInputRefs } = useExpiryDateContext();
+  const { cvcField, cvcInputRef } = useCvcContext();
+  const { passwordField, passwordInputRef } = usePasswordContext();
+  const { brand, brandSelectRef } = useBrandContext();
+  const isFormValid = useFormValidation({
+    numberFields,
+    expiryFields,
+    cvcField,
+    passwordField,
+    selectedBrand: brand
+  });
+  const triggers = [
+    true,
+    numberFields.every(
+      (f) => !f.hasError && f.value.length === f.maximumLength
+    ),
+    brand !== "",
+    expiryFields.every(
+      (f) => !f.hasError && f.value.length === f.maximumLength
+    ),
+    !cvcField.hasError && cvcField.value.length === cvcField.maximumLength
+  ];
+  const revealFlags = useSequentialReveal(triggers, 0);
+  const prevRef = reactExports.useRef(revealFlags);
+  reactExports.useLayoutEffect(() => {
+    var _a, _b, _c, _d, _e;
+    const prev2 = prevRef.current;
+    const newIdx = revealFlags.findIndex((on, i) => on && !prev2[i]);
+    if (newIdx >= 0) {
+      switch (newIdx) {
+        case 0:
+          (_a = numberInputRefs[0].current) == null ? void 0 : _a.focus();
+          break;
+        case 1:
+          (_b = brandSelectRef.current) == null ? void 0 : _b.focus();
+          break;
+        case 2:
+          (_c = expiryInputRefs[0].current) == null ? void 0 : _c.focus();
+          break;
+        case 3:
+          (_d = cvcInputRef.current) == null ? void 0 : _d.focus();
+          break;
+        case 4:
+          (_e = passwordInputRef.current) == null ? void 0 : _e.focus();
+          break;
+      }
+    }
+    prevRef.current = revealFlags;
+  }, [revealFlags, expiryFields, numberFields]);
+  return {
+    isFormValid,
+    revealFlags
+  };
+}
 const SubmitButton = () => {
   const { isFormValid } = useFormUiLogic();
   return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: isFormValid && /* @__PURE__ */ jsxRuntimeExports.jsx(ConfirmButton$1, { type: "submit", children: "확인" }) });
