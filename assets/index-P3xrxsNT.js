@@ -16516,7 +16516,7 @@ function useFormUiLogic() {
   ];
   const revealFlags = useSequentialReveal(triggers, 0);
   const prevRef = reactExports.useRef(revealFlags);
-  reactExports.useLayoutEffect(() => {
+  reactExports.useEffect(() => {
     var _a, _b, _c, _d, _e;
     const prev2 = prevRef.current;
     const newIdx = revealFlags.findIndex((on, i) => on && !prev2[i]);
