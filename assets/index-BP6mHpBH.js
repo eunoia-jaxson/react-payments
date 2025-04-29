@@ -15767,7 +15767,16 @@ const BrandProvider = ({
     setBrand(e.target.value);
   }, []);
   const brandSelectRef = reactExports.useRef(null);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(BrandContext.Provider, { value: { brand, handleBrandChange, brandSelectRef }, children });
+  const resetBrand = reactExports.useCallback(() => {
+    setBrand("");
+  }, []);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    BrandContext.Provider,
+    {
+      value: { brand, handleBrandChange, brandSelectRef, resetBrand },
+      children
+    }
+  );
 };
 function useBrandContext() {
   const ctx = reactExports.useContext(BrandContext);
@@ -15777,83 +15786,82 @@ function useBrandContext() {
   }
   return ctx;
 }
+function useInputFieldArray({
+  initialValues,
+  placeholders,
+  maximumLength,
+  validationFunction
+}) {
+  const [values, setValues] = reactExports.useState(initialValues);
+  const [errors, setErrors] = reactExports.useState(initialValues.map(() => ({ hasError: false, errorMessage: "" })));
+  const inputRefs = reactExports.useRef(
+    initialValues.map(() => reactExports.createRef())
+  ).current;
+  const handleChange = reactExports.useCallback(
+    (event, index) => {
+      var _a;
+      const next2 = event.target.value;
+      const { isValid, errorMessage } = validationFunction(
+        next2,
+        index,
+        maximumLength
+      );
+      setValues(
+        (prev2) => prev2.map((v, i) => i === index && isValid ? next2 : v)
+      );
+      setErrors(
+        (prev2) => prev2.map(
+          (e, i) => i === index ? { hasError: !isValid, errorMessage: isValid ? "" : errorMessage } : e
+        )
+      );
+      if (isValid && next2.length === maximumLength) {
+        const nextRef = inputRefs[index + 1];
+        (_a = nextRef == null ? void 0 : nextRef.current) == null ? void 0 : _a.focus();
+      }
+    },
+    [validationFunction, maximumLength, inputRefs]
+  );
+  const reset = reactExports.useCallback(() => {
+    setValues(initialValues);
+    setErrors(initialValues.map(() => ({ hasError: false, errorMessage: "" })));
+    inputRefs.forEach((ref) => {
+      var _a;
+      return (_a = ref.current) == null ? void 0 : _a.blur();
+    });
+  }, [initialValues, inputRefs]);
+  const fieldStates = values.map((value, i) => ({
+    value,
+    hasError: errors[i].hasError,
+    errorMessage: errors[i].errorMessage,
+    placeholder: placeholders[i] ?? "",
+    maximumLength
+  }));
+  return [fieldStates, handleChange, inputRefs, reset];
+}
 function useInputField({
   initialValue,
   placeholder,
   maximumLength,
   validationFunction
 }) {
-  const [fieldState, setFieldState] = reactExports.useState({
-    value: initialValue,
-    hasError: false,
-    placeholder,
+  const [fields, handleChange, [ref], resetArray] = useInputFieldArray({
+    initialValues: [initialValue],
+    placeholders: [placeholder],
     maximumLength,
-    errorMessage: ""
+    validationFunction: (v) => validationFunction(v)
   });
-  const inputRef = reactExports.useRef(null);
-  const handleChange = (event) => {
-    const inputValue = event.target.value;
-    const { isValid, errorMessage } = validationFunction(inputValue);
-    setFieldState((prev2) => ({
-      ...prev2,
-      value: isValid ? inputValue : prev2.value,
-      hasError: !isValid,
-      errorMessage: isValid ? "" : errorMessage
-    }));
-  };
-  return [fieldState, handleChange, inputRef];
+  const handleSingleChange = (e) => handleChange(e, 0);
+  const reset = () => resetArray();
+  return [fields[0], handleSingleChange, ref, reset];
 }
-function useMultipleInputFields({
-  initialValues,
-  placeholders,
-  maximumLength,
-  validationFunction
-}) {
-  const [fieldStates, setFieldStates] = reactExports.useState(
-    () => initialValues.map((value, idx) => ({
-      value,
-      hasError: false,
-      placeholder: placeholders[idx] || "",
-      maximumLength,
-      errorMessage: ""
-    }))
-  );
-  const inputRefs = reactExports.useRef(
-    initialValues.map(() => reactExports.createRef())
-  ).current;
-  const handleChange = (event, index) => {
-    const inputValue = event.target.value;
-    const { isValid, errorMessage } = validationFunction(
-      inputValue,
-      index,
-      maximumLength
-    );
-    setFieldStates(
-      (prev2) => prev2.map(
-        (state, i) => i === index ? {
-          ...state,
-          value: isValid ? inputValue : state.value,
-          hasError: !isValid,
-          errorMessage: isValid ? "" : errorMessage
-        } : state
-      )
-    );
-    if (isValid && inputValue.length === maximumLength) {
-      const nextRef = inputRefs[index + 1];
-      if (nextRef && nextRef.current) {
-        nextRef.current.focus();
-      }
-    }
-  };
-  return [fieldStates, handleChange, inputRefs];
-}
+const useMultipleInputFields = useInputFieldArray;
 function isNumeric(value) {
   return /^[0-9]*$/.test(value);
 }
 function isValidSegment(value, maxLength) {
   return value.length <= maxLength;
 }
-const isValidNumberSegment = (value, _, maxLength) => {
+const validateNumbers = (value, _, maxLength) => {
   const isValidValue = isNumeric(value) && isValidSegment(value, maxLength);
   return {
     isValid: isValidValue,
@@ -15868,17 +15876,7 @@ const ERROR_MESSAGE = {
 };
 const MONTH_RANGE = { MIN: 1, MAX: 12 };
 const YEAR_RANGE = { MIN: 0, MAX: 99 };
-function getExpirationError(value, index) {
-  const num = Number(value);
-  if (index === 0 && (num < MONTH_RANGE.MIN || num > MONTH_RANGE.MAX)) {
-    return ERROR_MESSAGE.INVALID_MONTH;
-  }
-  if (index === 1 && (num < YEAR_RANGE.MIN || num > YEAR_RANGE.MAX)) {
-    return ERROR_MESSAGE.INVALID_YEAR;
-  }
-  return "";
-}
-function isValidExpirationSegment(value, index, maxLength) {
+function validateExpiryDate(value, index, maxLength) {
   if (!isNumeric(value)) {
     return { isValid: false, errorMessage: ERROR_MESSAGE.INVALID_CHARACTER };
   }
@@ -15888,9 +15886,15 @@ function isValidExpirationSegment(value, index, maxLength) {
   if (value.length < maxLength) {
     return { isValid: true, errorMessage: "" };
   }
-  const rangeError = getExpirationError(value, index);
-  if (rangeError) {
-    return { isValid: false, errorMessage: rangeError };
+  const num = Number(value);
+  if (index === 0) {
+    if (num < MONTH_RANGE.MIN || num > MONTH_RANGE.MAX) {
+      return { isValid: false, errorMessage: ERROR_MESSAGE.INVALID_MONTH };
+    }
+  } else {
+    if (num < YEAR_RANGE.MIN || num > YEAR_RANGE.MAX) {
+      return { isValid: false, errorMessage: ERROR_MESSAGE.INVALID_YEAR };
+    }
   }
   return { isValid: true, errorMessage: "" };
 }
@@ -15903,7 +15907,7 @@ function validateCvcNumber(value) {
   }
   return { isValid: true, errorMessage: "" };
 }
-function validatePasswordSegment(value) {
+function validatePassword(value) {
   if (!isNumeric(value)) {
     return { isValid: false, errorMessage: ERROR_MESSAGE.INVALID_CHARACTER };
   }
@@ -15918,12 +15922,16 @@ const EXPIRY_SEGMENT_LENGTH = 2;
 const ExpiryDateProvider = ({
   children
 }) => {
-  const [expiryFields, handleExpiryChange, expiryInputRefs] = useMultipleInputFields({
+  const [expiryFields, handleExpiryChange, expiryInputRefs, reset] = useMultipleInputFields({
     initialValues: ["", ""],
     placeholders: EXPIRY_PLACEHOLDERS,
     maximumLength: EXPIRY_SEGMENT_LENGTH,
-    validationFunction: isValidExpirationSegment
+    validationFunction: validateExpiryDate
   });
+  const resetExpiryDate = reactExports.useCallback(() => {
+    reset();
+    setShowSep(false);
+  }, [reset]);
   const [showSep, setShowSep] = reactExports.useState(false);
   const showPeriodSeparator = reactExports.useCallback(() => {
     setShowSep(true);
@@ -15941,7 +15949,8 @@ const ExpiryDateProvider = ({
         expiryInputRefs,
         showSep,
         showPeriodSeparator,
-        hidePeriodSeparator
+        hidePeriodSeparator,
+        resetExpiryDate
       },
       children
     }
@@ -15963,16 +15972,21 @@ const NUMBER_SEGMENT_LENGTH = 4;
 const NumbersProvider = ({
   children
 }) => {
-  const [numberFields, handleNumbersChange, numberInputRefs] = useMultipleInputFields({
+  const [numberFields, handleNumbersChange, numberInputRefs, resetNumbers] = useMultipleInputFields({
     initialValues: ["", "", "", ""],
     placeholders: NUMBER_PLACEHOLDERS,
     maximumLength: NUMBER_SEGMENT_LENGTH,
-    validationFunction: isValidNumberSegment
+    validationFunction: validateNumbers
   });
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     NumbersContext.Provider,
     {
-      value: { numberFields, handleNumbersChange, numberInputRefs },
+      value: {
+        numberFields,
+        handleNumbersChange,
+        numberInputRefs,
+        resetNumbers
+      },
       children
     }
   );
@@ -16279,17 +16293,20 @@ const NumberInputs = () => {
     /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorMessage, { children: numberFields.some((data) => data.hasError) ? ERROR_MESSAGE.INVALID_CHARACTER : "" })
   ] });
 };
+const SELECT_OPTIONS = [
+  { value: "BC", label: "BC카드" },
+  { value: "신한", label: "신한카드" },
+  { value: "카카오", label: "카카오뱅크" },
+  { value: "현대", label: "현대카드" },
+  { value: "우리", label: "우리카드" },
+  { value: "롯데", label: "롯데카드" },
+  { value: "하나", label: "하나카드" },
+  { value: "국민", label: "국민카드" }
+];
 const InputSelect = ({ value, onChange, inputRef }) => {
   return /* @__PURE__ */ jsxRuntimeExports.jsx(InputSelectContainer, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(Row, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Select, { value, onChange, ref: inputRef, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", disabled: true, hidden: true, children: "카드사를 선택해주세요" }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "BC", children: "BC카드" }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "신한", children: "신한카드" }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "카카오", children: "카카오뱅크" }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "현대", children: "현대카드" }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "우리", children: "우리카드" }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "롯데", children: "롯데카드" }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "하나", children: "하나카드" }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "국민", children: "국민카드" })
+    SELECT_OPTIONS.map((option) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: option.value, children: option.label }, option.value))
   ] }) }) });
 };
 const InputSelectContainer = newStyled.div`
@@ -16374,13 +16391,19 @@ const CVC_MAX_LENGTH = 3;
 const CvcProvider = ({
   children
 }) => {
-  const [cvcField, handleCvcChange, cvcInputRef] = useInputField({
+  const [cvcField, handleCvcChange, cvcInputRef, resetCvc] = useInputField({
     initialValue: "",
     placeholder: CVC_PLACEHOLDER,
     maximumLength: CVC_MAX_LENGTH,
     validationFunction: validateCvcNumber
   });
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(CvcContext.Provider, { value: { cvcField, handleCvcChange, cvcInputRef }, children });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    CvcContext.Provider,
+    {
+      value: { cvcField, handleCvcChange, cvcInputRef, resetCvc },
+      children
+    }
+  );
 };
 function useCvcContext() {
   const ctx = reactExports.useContext(CvcContext);
@@ -16412,18 +16435,21 @@ const PASSWORD_MAX_LENGTH = 2;
 const PasswordProvider = ({
   children
 }) => {
-  const [passwordField, handlePasswordChange, passwordInputRef] = useInputField(
-    {
-      initialValue: "",
-      placeholder: PASSWORD_PLACEHOLDER,
-      maximumLength: PASSWORD_MAX_LENGTH,
-      validationFunction: validatePasswordSegment
-    }
-  );
+  const [passwordField, handlePasswordChange, passwordInputRef, resetPassword] = useInputField({
+    initialValue: "",
+    placeholder: PASSWORD_PLACEHOLDER,
+    maximumLength: PASSWORD_MAX_LENGTH,
+    validationFunction: validatePassword
+  });
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     PasswordContext.Provider,
     {
-      value: { passwordField, handlePasswordChange, passwordInputRef },
+      value: {
+        passwordField,
+        handlePasswordChange,
+        passwordInputRef,
+        resetPassword
+      },
       children
     }
   );
@@ -16461,48 +16487,55 @@ const PasswordInput = () => {
     /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorMessage, { children: passwordField.hasError ? ERROR_MESSAGE.INVALID_CHARACTER : "" })
   ] });
 };
-function useSequentialReveal(completions, initialIndex = 0) {
-  const maxIndexRef = reactExports.useRef(initialIndex);
-  completions.forEach((isComplete, idx) => {
-    if (isComplete && idx > maxIndexRef.current) {
-      maxIndexRef.current = idx;
-    }
-  });
-  return completions.map((_, idx) => idx <= maxIndexRef.current);
+function useFormValidation(params) {
+  const { numberFields, expiryFields, cvcField, passwordField, selectedBrand } = params;
+  if (!selectedBrand) return false;
+  const allFields = [...numberFields, ...expiryFields, cvcField, passwordField];
+  return allFields.every(
+    (f) => !f.hasError && f.value.length === f.maximumLength
+  );
 }
-function useFormValidation({
+const validateForm = ({
   numberFields,
   expiryFields,
   cvcField,
   passwordField,
-  selectedBrand
-}) {
-  return reactExports.useMemo(() => {
-    if (!selectedBrand) return false;
-    const allFields = [
-      ...numberFields,
-      ...expiryFields,
-      cvcField,
-      passwordField
-    ];
-    return allFields.every(
-      (field) => !field.hasError && field.value.length === field.maximumLength
-    );
-  }, [numberFields, expiryFields, cvcField, passwordField, selectedBrand]);
-}
-function useFormUiLogic() {
-  const { numberFields, numberInputRefs } = useNumbersContext();
-  const { expiryFields, expiryInputRefs } = useExpiryDateContext();
-  const { cvcField, cvcInputRef } = useCvcContext();
-  const { passwordField, passwordInputRef } = usePasswordContext();
-  const { brand, brandSelectRef } = useBrandContext();
-  const isFormValid = useFormValidation({
+  brand
+}) => {
+  return useFormValidation({
     numberFields,
     expiryFields,
     cvcField,
     passwordField,
     selectedBrand: brand
   });
+};
+const SubmitButton = () => {
+  const { numberFields } = useNumbersContext();
+  const { brand } = useBrandContext();
+  const { expiryFields } = useExpiryDateContext();
+  const { cvcField } = useCvcContext();
+  const { passwordField } = usePasswordContext();
+  const isFormValid = validateForm({
+    numberFields,
+    expiryFields,
+    cvcField,
+    passwordField,
+    brand
+  });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: isFormValid && /* @__PURE__ */ jsxRuntimeExports.jsx(ConfirmButton$1, { type: "submit", children: "확인" }) });
+};
+const ConfirmButton$1 = newStyled(Button)`
+  position: sticky;
+  bottom: 0;
+  height: 52px;
+`;
+function useSequentialReveal() {
+  const { numberFields, numberInputRefs } = useNumbersContext();
+  const { expiryFields, expiryInputRefs } = useExpiryDateContext();
+  const { cvcField, cvcInputRef } = useCvcContext();
+  const { passwordInputRef } = usePasswordContext();
+  const { brand, brandSelectRef } = useBrandContext();
   const triggers = [
     true,
     numberFields.every(
@@ -16514,52 +16547,46 @@ function useFormUiLogic() {
     ),
     !cvcField.hasError && cvcField.value.length === cvcField.maximumLength
   ];
-  const revealFlags = useSequentialReveal(triggers, 0);
-  const prevRef = reactExports.useRef(revealFlags);
+  const [maxIndex, setMaxIndex] = reactExports.useState(0);
+  const prevIndexRef = reactExports.useRef(0);
+  reactExports.useEffect(() => {
+    const nextIdx = triggers.findIndex((ok, i) => ok && i > maxIndex);
+    if (nextIdx >= 0) {
+      setMaxIndex(nextIdx);
+    }
+  }, [triggers, maxIndex]);
   reactExports.useEffect(() => {
     var _a, _b, _c, _d, _e;
-    const prev2 = prevRef.current;
-    const newIdx = revealFlags.findIndex((on, i) => on && !prev2[i]);
-    if (newIdx >= 0) {
-      switch (newIdx) {
-        case 0:
-          (_a = numberInputRefs[0].current) == null ? void 0 : _a.focus();
-          break;
-        case 1:
-          (_b = brandSelectRef.current) == null ? void 0 : _b.focus();
-          break;
-        case 2:
-          (_c = expiryInputRefs[0].current) == null ? void 0 : _c.focus();
-          break;
-        case 3:
-          (_d = cvcInputRef.current) == null ? void 0 : _d.focus();
-          break;
-        case 4:
-          (_e = passwordInputRef.current) == null ? void 0 : _e.focus();
-          break;
-      }
+    if (prevIndexRef.current === maxIndex) return;
+    switch (maxIndex) {
+      case 0:
+        (_a = numberInputRefs[0].current) == null ? void 0 : _a.focus();
+        break;
+      case 1:
+        (_b = brandSelectRef.current) == null ? void 0 : _b.focus();
+        break;
+      case 2:
+        (_c = expiryInputRefs[0].current) == null ? void 0 : _c.focus();
+        break;
+      case 3:
+        (_d = cvcInputRef.current) == null ? void 0 : _d.focus();
+        break;
+      case 4:
+        (_e = passwordInputRef.current) == null ? void 0 : _e.focus();
+        break;
     }
-    prevRef.current = revealFlags;
-  }, [revealFlags, expiryFields, numberFields]);
+    prevIndexRef.current = maxIndex;
+  }, [maxIndex]);
+  const revealFlags = triggers.map((_, i) => i <= maxIndex);
   return {
-    isFormValid,
     revealFlags
   };
 }
-const SubmitButton = () => {
-  const { isFormValid } = useFormUiLogic();
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: isFormValid && /* @__PURE__ */ jsxRuntimeExports.jsx(ConfirmButton$1, { type: "submit", children: "확인" }) });
-};
-const ConfirmButton$1 = newStyled(Button)`
-  position: sticky;
-  bottom: 0;
-  height: 52px;
-`;
 const HomePage = () => {
   const navigate = useNavigate();
   const { numberFields } = useNumbersContext();
   const { brand } = useBrandContext();
-  const { revealFlags } = useFormUiLogic();
+  const { revealFlags } = useSequentialReveal();
   const onSubmit = (e) => {
     e.preventDefault();
     const params = new URLSearchParams({
@@ -16594,9 +16621,18 @@ const CompletePage = () => {
   const params = new URLSearchParams(window.location.search);
   const brand = params.get("brand") || "";
   const number = params.get("number") || "";
+  const { resetBrand } = useBrandContext();
+  const { resetNumbers } = useNumbersContext();
+  const { resetExpiryDate } = useExpiryDateContext();
+  const { resetCvc } = useCvcContext();
+  const { resetPassword } = usePasswordContext();
   const onClick = () => {
+    resetBrand();
+    resetNumbers();
+    resetExpiryDate();
+    resetCvc();
+    resetPassword();
     navigate("/");
-    window.location.reload();
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(Center, { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: "./images/completeIcon.svg", alt: "Complete" }),
